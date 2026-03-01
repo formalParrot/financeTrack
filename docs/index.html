@@ -67,7 +67,7 @@
 					<small id="user-display"></small>
 					<a href="#" onclick="logout()" style="font-size: 12px">Logout</a>
 				</div>
-				<h1 id="balance">$0.00</h1>
+				<h1 id="balance">₾0.00</h1>
 
 				<select id="type">
 					<option value="Expense">Expense (-)</option>
@@ -136,7 +136,7 @@
             </div>`;
 					})
 					.join('');
-				document.getElementById('balance').innerText = `$${total.toFixed(2)}`;
+				document.getElementById('balance').innerText = `$₾{total.toFixed(2)}`;
 			}
 
 			async function save() {
