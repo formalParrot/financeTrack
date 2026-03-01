@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Secure Finance Tracker</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<style>
+			body {
+				font-family: sans-serif;
+				background: #f0f2f5;
+				display: flex;
+				justify-content: center;
+				padding: 20px;
+			}
+			.card {
+				background: white;
+				padding: 25px;
+				border-radius: 15px;
+				width: 100%;
+				max-width: 400px;
+				box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+			}
+			.hidden {
+				display: none;
+			}
+			input,
+			select,
+			button {
+				width: 100%;
+				padding: 12px;
+				margin: 8px 0;
+				border: 1px solid #ddd;
+				border-radius: 8px;
+				box-sizing: border-box;
+			}
+			button {
+				background: #1a73e8;
+				color: white;
+				border: none;
+				font-weight: bold;
+				cursor: pointer;
+			}
+			.item {
+				display: flex;
+				justify-content: space-between;
+				padding: 10px 0;
+				border-bottom: 1px solid #eee;
+			}
+			.Income {
+				color: #2ecc71;
+			}
+			.Expense {
+				color: #e74c3c;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="card">
+			<div id="login-section">
+				<h2>Finance Login</h2>
+				<input type="text" id="user-input" placeholder="Username" />
+				<input type="password" id="pass-input" placeholder="Password" />
+				<button onclick="login()">Login / Register</button>
+			</div>
+
+			<div id="dashboard" class="hidden">
+				<div style="display: flex; justify-content: space-between">
+					<small id="user-display"></small>
+					<a href="#" onclick="logout()" style="font-size: 12px">Logout</a>
+				</div>
+				<h1 id="balance">$0.00</h1>
+
+				<select id="type">
+					<option value="Expense">Expense (-)</option>
+					<option value="Income">Income (+)</option>
+				</select>
+				<input type="number" id="amount" placeholder="Amount" step="0.01" />
+				<input type="text" id="item" placeholder="What for?" />
+				<button onclick="save()">Add Entry</button>
+
+				<div id="history" style="margin-top: 20px"></div>
+			</div>
+		</div>
+
+		<script>
+			const API = 'https://my-finance-api.justparrot.workers.dev/transactions';
+
+			// Auto-login on Page Load
+			window.onload = () => {
+				if (localStorage.getItem('username')) showDashboard();
+			};
+
+			function login() {
+				const u = document.getElementById('user-input').value;
+				const p = document.getElementById('pass-input').value;
+				if (!u || !p) return alert('Fill everything!');
+
+				localStorage.setItem('username', u);
+				localStorage.setItem('password', p);
+				showDashboard();
+			}
+
+			function logout() {
+				localStorage.clear();
+				location.reload();
+			}
+
+			async function showDashboard() {
+				document.getElementById('login-section').classList.add('hidden');
+				document.getElementById('dashboard').classList.remove('hidden');
+				document.getElementById('user-display').innerText = 'User: ' + localStorage.getItem('username');
+				loadData();
+			}
+
+			async function loadData() {
+				const res = await fetch(API, {
+					headers: {
+						'X-Username': localStorage.getItem('username'),
+						'X-Password': localStorage.getItem('password'),
+					},
+				});
+
+				if (res.status === 403) {
+					alert('Wrong password!');
+					logout();
+					return;
+				}
+
+				const data = await res.json();
+				let total = 0;
+				document.getElementById('history').innerHTML = data
+					.map((t) => {
+						total += t.type === 'Income' ? t.amount : -t.amount;
+						return `<div class="item">
+                <span>${t.item}</span>
+                <span class="${t.type}">${t.type === 'Income' ? '+' : '-'}$${t.amount.toFixed(2)}</span>
+            </div>`;
+					})
+					.join('');
+				document.getElementById('balance').innerText = `$${total.toFixed(2)}`;
+			}
+
+			async function save() {
+				const payload = {
+					type: document.getElementById('type').value,
+					amount: parseFloat(document.getElementById('amount').value),
+					item: document.getElementById('item').value,
+				};
+
+				await fetch(API, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-Username': localStorage.getItem('username'),
+						'X-Password': localStorage.getItem('password'),
+					},
+					body: JSON.stringify(payload),
+				});
+				loadData();
+			}
+		</script>
+	</body>
+</html>

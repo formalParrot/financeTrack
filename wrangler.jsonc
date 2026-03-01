@@ -8,11 +8,17 @@
 	"main": "src/index.js",
 	"compatibility_date": "2026-03-01",
 	"observability": {
-		"enabled": true
+		"enabled": true,
 	},
-	"compatibility_flags": [
-		"nodejs_compat"
-	]
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "finance-db",
+			"database_id": "0f2e8de9-5eae-4b1b-85b5-26ad326db6f3",
+			"remote": true,
+		},
+	],
+	"compatibility_flags": ["nodejs_compat"],
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
